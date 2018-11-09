@@ -9,43 +9,25 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
-import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
-import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 
 public class ExtraFlags extends JavaPlugin implements Listener {
 
 	private static final StateFlag elytraUse = new StateFlag("elytra-use", true);
 	private WorldGuardPlugin wg = null;
-	private Object wgObject;
 	
 	@Override
 	public void onLoad() {
 		wg = (WorldGuardPlugin) Bukkit.getPluginManager().getPlugin("WorldGuard");
-		FlagRegistry registry;
 		
-		try {
-			wgObject = Class.forName("com.sk89q.worldguard.WorldGuard").getMethod("getInstance").invoke(null);
-			
-			registry = (FlagRegistry) wgObject.getClass().getMethod("getFlagRegistry").invoke(wgObject);
-		}
-		catch(Exception e) {
-			registry = wg.getFlagRegistry();
-		}
-		
-		try {
-			registry.register(elytraUse);
-		}
-		catch(FlagConflictException e) {
-			// HOW
-		}
+		WorldGuard.getInstance().getFlagRegistry().register(elytraUse);
 	}
 	
 	@Override
@@ -64,18 +46,10 @@ public class ExtraFlags extends JavaPlugin implements Listener {
 			LocalPlayer lp = wg.wrapPlayer((Player) event.getEntity());
 			Location loc = event.getEntity().getLocation();
 			
-			RegionManager manager;
-			try {
-				Object wgp = wgObject.getClass().getMethod("getPlatform").invoke(wgObject);
-				Object regionContainer = wgp.getClass().getMethod("getRegionContainer").invoke(wgp);
-				manager = (RegionManager) regionContainer.getClass().getMethod("get", World.class).invoke(regionContainer, new BukkitWorld(loc.getWorld()));
-			}
-			catch(Exception e) {
-				throw new RuntimeException(e);
-			}
+			RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(new BukkitWorld(loc.getWorld()));
 			
-			ApplicableRegionSet set = manager.getApplicableRegions(new Vector(loc.getX(), loc.getY(), loc.getZ()));
-			
+			ApplicableRegionSet set = manager.getApplicableRegions(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()));
+
 			if(!set.testState(lp, elytraUse)) {
 				event.setCancelled(true);
 			}
