@@ -9,8 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
-import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
@@ -48,7 +48,7 @@ public class ExtraFlags extends JavaPlugin implements Listener {
 			
 			RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(new BukkitWorld(loc.getWorld()));
 			
-			ApplicableRegionSet set = manager.getApplicableRegions(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()));
+			ApplicableRegionSet set = manager.getApplicableRegions(BlockVector.toBlockPoint(loc.getX(), loc.getY(), loc.getZ()));
 
 			if(!set.testState(lp, elytraUse)) {
 				event.setCancelled(true);
